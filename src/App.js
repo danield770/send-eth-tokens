@@ -31,17 +31,26 @@ function App() {
       window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
     };
   }, []);
+
   const [hasProvider, setHasProvider] = React.useState(null);
   const initialState = { accounts: [] };
   const [wallet, setWallet] = React.useState(initialState);
   const [toAddress, setToAddress] = React.useState('');
   const [amount, setAmount] = React.useState(0);
-  const { web3, toError, amountError } = useEthTransfer(
+  const [transferStatus, setTransferStatus] = React.useState('idle');
+  const { toError, amountError, status, txnHash } = useEthTransfer(
     wallet.accounts[0],
     toAddress,
-    amount
+    amount,
+    transferStatus
   );
   const invalidForm = !toAddress || !amount || toError || amountError;
+  // const btnTextByStatus = {
+  //   idle: 'Transfer Tokens',
+  //   pending: 'Tranferring tokens...',
+  //   success: 'Reset form',
+  //   fail: 'reset form',
+  // };
 
   if (!hasProvider) {
     return (
@@ -51,8 +60,13 @@ function App() {
   function onSubmit(e) {
     e.preventDefault();
     console.log('starting transfer...');
+    setTransferStatus('pending');
   }
-  console.log({ web3 });
+  function resetForm() {
+    setToAddress('');
+    setAmount(0);
+    setTransferStatus('idle');
+  }
 
   return (
     <>
@@ -77,9 +91,21 @@ function App() {
           placeholder='Amount of tokens to transfer'
         />
         {amountError && <div className='error'>{amountError}</div>}
-        <button className='btn' disabled={invalidForm} type='submit'>
-          Transfer Tokens
-        </button>
+        {status === 'success' || status === 'fail' ? (
+          <button className='btn' onClick={resetForm} type='button'>
+            Reset form
+            {/* {btnTextByStatus[transferStatus]} */}
+          </button>
+        ) : (
+          <button
+            className='btn'
+            disabled={invalidForm || transferStatus === 'pending'}
+            type='submit'
+          >
+            Transfer tokens
+            {/* {btnTextByStatus[transferStatus]} */}
+          </button>
+        )}
       </form>
     </>
   );
