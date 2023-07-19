@@ -21,10 +21,10 @@ function App() {
 
     getProvider();
     connectAccount();
-    // window.ethereum.on('accountsChanged', (accounts) => {
-    //   setWallet({ accounts });
-    //   console.log(`Selected account changed to ${accounts[0]}`);
-    // });
+    window.ethereum.on('accountsChanged', (accounts) => {
+      setWallet({ accounts });
+      console.log(`Selected account changed to ${accounts[0]}`);
+    });
     window.ethereum.on('accountsChanged', handleAccountsChanged);
 
     return () => {

@@ -13,15 +13,13 @@ function useEthTransfer(fromAddress, toAddress = '', amountToTransfer = 0) {
 
       // console.log({ format });
       setBalance(formattedBalance);
-      // return format;
     }
-    getBalance();
+    fromAddress && getBalance();
   }, [fromAddress]);
 
   const [balance, setBalance] = React.useState(0);
 
-  const providerUrl =
-    'https://goerli.infura.io/v3/91504c66b254484881c8f33902d0e6fa';
+  const providerUrl = `https://goerli.infura.io/v3/${process.env.REACT_APP_KEY}`;
   const web3 = new Web3(providerUrl);
   const contract = new web3.eth.Contract(ABI, tokenAddress);
 
@@ -48,7 +46,6 @@ function useEthTransfer(fromAddress, toAddress = '', amountToTransfer = 0) {
   //   }; // nothing meaningful to return if no wallet exists
 
   // console.log({ contract });
-
   // console.log({ amountToTransfer });
   // console.log({ balance });
   const amountError =
