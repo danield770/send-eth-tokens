@@ -1,6 +1,7 @@
 import React from 'react';
 import useEthTransfer from './hooks/useEthTransfer';
 import detectEthereumProvider from '@metamask/detect-provider';
+import { tokenAddress } from './config/hord6';
 import './App.css';
 
 function App() {
@@ -33,24 +34,19 @@ function App() {
   }, []);
 
   const [hasProvider, setHasProvider] = React.useState(null);
-  const initialState = { accounts: [] };
-  const [wallet, setWallet] = React.useState(initialState);
+  const [wallet, setWallet] = React.useState({ accounts: [] });
   const [toAddress, setToAddress] = React.useState('');
-  const [amount, setAmount] = React.useState(0);
+  const [amount, setAmount] = React.useState(null);
   const [transferStatus, setTransferStatus] = React.useState('idle');
-  const { toError, amountError, status, txnHash } = useEthTransfer(
+  const [txnHash, setTxnHash] = React.useState('');
+  const [txnError, setTxnError] = React.useState('');
+  const { toError, amountError, data } = useEthTransfer(
     wallet.accounts[0],
     toAddress,
     amount,
     transferStatus
   );
   const invalidForm = !toAddress || !amount || toError || amountError;
-  // const btnTextByStatus = {
-  //   idle: 'Transfer Tokens',
-  //   pending: 'Tranferring tokens...',
-  //   success: 'Reset form',
-  //   fail: 'reset form',
-  // };
 
   if (!hasProvider) {
     return (
@@ -61,11 +57,35 @@ function App() {
     e.preventDefault();
     console.log('starting transfer...');
     setTransferStatus('pending');
+
+    window.ethereum
+      .request({
+        method: 'eth_sendTransaction',
+        params: [
+          {
+            from: wallet.accounts[0],
+            to: tokenAddress,
+            data,
+          },
+        ],
+      })
+      .then((txHash) => {
+        console.log(txHash);
+        setTxnHash(txHash);
+        setTransferStatus('success');
+      })
+      .catch((error) => {
+        console.error(error);
+        setTxnError(error);
+        setTransferStatus('fail');
+      });
   }
   function resetForm() {
     setToAddress('');
     setAmount(0);
     setTransferStatus('idle');
+    setTxnHash('');
+    setTxnError('');
   }
 
   return (
@@ -86,16 +106,19 @@ function App() {
         {toError && <div className='error'>{toError}</div>}
         <input
           type='number'
+          value={amount}
           min={1}
           onChange={(e) => setAmount(Number(e.target.value))}
           placeholder='Amount of tokens to transfer'
         />
         {amountError && <div className='error'>{amountError}</div>}
-        {status === 'success' || status === 'fail' ? (
-          <button className='btn' onClick={resetForm} type='button'>
-            Reset form
-            {/* {btnTextByStatus[transferStatus]} */}
-          </button>
+        {transferStatus === 'success' || transferStatus === 'fail' ? (
+          <input
+            type='reset'
+            value='Reset form'
+            className='btn'
+            onClick={resetForm}
+          />
         ) : (
           <button
             className='btn'
@@ -103,10 +126,21 @@ function App() {
             type='submit'
           >
             Transfer tokens
-            {/* {btnTextByStatus[transferStatus]} */}
           </button>
         )}
       </form>
+      {txnHash && (
+        <>
+          <h2>Transaction Successful!</h2>
+          <div>Transaction Hash: {txnHash}</div>
+        </>
+      )}
+      {txnError && (
+        <>
+          <h2>Transaction Failed!</h2>
+          <div>Transaction Error: {txnError.toString()}</div>
+        </>
+      )}
     </>
   );
 }

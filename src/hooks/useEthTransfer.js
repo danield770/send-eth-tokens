@@ -13,33 +13,11 @@ function useEthTransfer(
   }, [fromAddress]);
 
   React.useEffect(() => {
-    function sendTokens() {
-      contract.methods
-        .transfer(toAddress, amountToTransfer)
-        .send({ from: fromAddress })
-        .on('transactionHash', function (hash) {
-          console.log({ hash });
-          setTxnHash(hash);
-        })
-        .on('receipt', function (receipt) {
-          console.log({ receipt });
-          setStatus('success');
-          getBalance();
-        })
-        .on('error', function (error, receipt) {
-          // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-          console.log({ receipt });
-          setStatus('fail');
-        });
-    }
-
-    setStatus(transferStatus);
-    transferStatus === 'pending' && sendTokens();
+    transferStatus === 'success' && getBalance();
   }, [transferStatus]);
 
   const [balance, setBalance] = React.useState(0);
-  const [status, setStatus] = React.useState(transferStatus);
-  const [txnHash, setTxnHash] = React.useState('');
+  const [decimals, setDecimals] = React.useState(0);
 
   const providerUrl = `https://goerli.infura.io/v3/${process.env.REACT_APP_KEY}`;
   const web3 = new Web3(providerUrl);
@@ -47,12 +25,15 @@ function useEthTransfer(
 
   async function getBalance() {
     const result = await contract.methods.balanceOf(fromAddress).call();
-    const decimals = await contract.methods.decimals().call();
-    // console.log({ decimals: Number(decimals) });
+    const contractDecimals = await contract.methods.decimals().call();
 
-    const formattedBalance = formatBalance(Number(result), Number(decimals));
+    setDecimals(Number(contractDecimals));
 
-    // console.log({ format });
+    const formattedBalance = formatBalance(
+      Number(result),
+      Number(contractDecimals)
+    );
+
     setBalance(formattedBalance);
   }
 
@@ -71,9 +52,6 @@ function useEthTransfer(
     }
   }
 
-  console.log({ contract });
-  // console.log({ amountToTransfer });
-  // console.log({ balance });
   const amountError =
     amountToTransfer > balance
       ? `Maximum tokens available for transfer is ${balance}`
@@ -81,11 +59,24 @@ function useEthTransfer(
   const toError =
     toAddress && !isValidAddress(toAddress) ? 'Invalid ethereum address' : '';
 
+  const TRANSFER_FUNCTION_ABI = {
+    inputs: [
+      { internalType: 'address', name: 'recipient', type: 'address' },
+      { internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'transfer',
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  };
+
   return {
     amountError,
     toError,
-    status,
-    txnHash,
+    data: web3.eth.abi.encodeFunctionCall(TRANSFER_FUNCTION_ABI, [
+      tokenAddress,
+      amountToTransfer * 10 ** decimals,
+    ]),
   };
 }
 
