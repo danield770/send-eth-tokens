@@ -36,7 +36,7 @@ function App() {
   const [hasProvider, setHasProvider] = React.useState(null);
   const [wallet, setWallet] = React.useState({ accounts: [] });
   const [toAddress, setToAddress] = React.useState('');
-  const [amount, setAmount] = React.useState(null);
+  const [amount, setAmount] = React.useState('');
   const [transferStatus, setTransferStatus] = React.useState('idle');
   const [txnHash, setTxnHash] = React.useState('');
   const [txnError, setTxnError] = React.useState('');
@@ -70,7 +70,7 @@ function App() {
         ],
       })
       .then((txHash) => {
-        console.log(txHash);
+        // console.log(txHash);
         setTxnHash(txHash);
         setTransferStatus('success');
       })
@@ -82,7 +82,7 @@ function App() {
   }
   function resetForm() {
     setToAddress('');
-    setAmount(0);
+    setAmount('');
     setTransferStatus('idle');
     setTxnHash('');
     setTxnError('');
