@@ -46,6 +46,7 @@ function App() {
     amount,
     transferStatus
   );
+
   const invalidForm = !toAddress || !amount || toError || amountError;
 
   if (!hasProvider) {
@@ -72,7 +73,7 @@ function App() {
       .then((txHash) => {
         // console.log(txHash);
         setTxnHash(txHash);
-        setTransferStatus('success');
+        // setTransferStatus('success');
       })
       .catch((error) => {
         console.error(error);
@@ -112,7 +113,7 @@ function App() {
           placeholder='Amount of tokens to transfer'
         />
         {amountError && <div className='error'>{amountError}</div>}
-        {transferStatus === 'success' || transferStatus === 'fail' ? (
+        {txnHash || transferStatus === 'fail' ? (
           <input
             type='reset'
             value='Reset form'
@@ -129,12 +130,7 @@ function App() {
           </button>
         )}
       </form>
-      {txnHash && (
-        <>
-          <h2>Transaction Successful!</h2>
-          <div>Transaction Hash: {txnHash}</div>
-        </>
-      )}
+      {txnHash && <div className='hash'>Transaction Hash: {txnHash}</div>}
       {txnError && (
         <>
           <h2>Transaction Failed!</h2>

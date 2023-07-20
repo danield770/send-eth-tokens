@@ -73,10 +73,13 @@ function useEthTransfer(
   return {
     amountError,
     toError,
-    data: web3.eth.abi.encodeFunctionCall(TRANSFER_FUNCTION_ABI, [
-      tokenAddress,
-      amountToTransfer * 10 ** decimals,
-    ]),
+    data:
+      !toAddress || toError
+        ? ''
+        : web3.eth.abi.encodeFunctionCall(TRANSFER_FUNCTION_ABI, [
+            toAddress,
+            amountToTransfer * 10 ** decimals,
+          ]),
   };
 }
 

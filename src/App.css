@@ -42,3 +42,7 @@ input {
   top: -14px;
   font-size: 0.8rem;
 }
+.hash {
+  text-align: center;
+  margin-top: 20px;
+}
